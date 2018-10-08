@@ -22,14 +22,35 @@ public:
     void setOutputVal(double val){m_outputVal=val;}
     double getOutputVal(void)const{return m_outputVal;}
     void feedForward(const Layer &prevLayer);
+    void calcOutputGradients(double targetVal);
+    void calcHiddenGradients(const Layer &nextLayer);
 private:
     static double activationFunction(double x);
     static double activationFunctionDerivative(double x);
     static double randomWeight(void){return rand()/double(RAND_MAX);}
+    double sumDOW(const Layer &nextLayer)const;
     double m_outputVal;
     vector<Connection> m_outputWeights;
     unsigned m_myIndex;
+    double m_gradient;
 };
+
+double Neuron::sumDOW(const Layer &nextLayer)const{
+    double sum=0.0;
+
+
+}
+
+void Neuron::calcHiddenGradients(const Layer &nextLayer){
+    double dow=sumDOW(nextLayer);
+    m_gradient=dow*Neuron::activationFunctionDerivative(m_outputVal);
+
+}
+
+void Neuron::calcOutputGradients(double targetVal){
+    double delta=targetVal-m_outputVal;
+    m_gradient=delta*Neuron::activationFunctionDerivative(m_outputVal);
+}
 
 double Neuron::activationFunction(double x){
     return tanh(x);
@@ -92,10 +113,22 @@ void Net::backProp(const vector<double> &targetVals){
 
     for (unsigned n=0; n<outputLayer.size()-1;++n){
         outputLayer[n].calcOutputGradients(targetVals[n]);
+    }
+    for(unsigned layerNum=m_layers.size()-2; layerNum>0;--layerNum){
+        Layer &hiddenLayer =m_layers[layerNum];
+        Layer &nextLayer=m_layers[layerNum+1];
 
-        for(unsigned layerNum=m_layers.size()-2; layerNum>0;--layerNum){
-            Layer &hiddenLayer =m_layers[layerNum];
-            Layer &nextLayer=m_layers[layerNum+1];
+        for(unsigned n=0;n<hiddenLayer.size();++n){
+            hiddenLayer[n].calcHiddenGradients(nextLayer);
+        }
+    }
+
+    for(unsigned layerNum=m_layers.size()-1;layerNum>0;--layerNum){
+        Layer &layer=m_layers[layerNum];
+        Layer &prevLayer =m_layers[layerNum-1];
+
+        for(unsigned n=0;n<layer.size()-1;++n){
+            layer[n].updateInputWeights(prevLayer);
         }
     }
 }
