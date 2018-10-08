@@ -1,7 +1,13 @@
 #include <iostream>
 #include <vector>
+#include <cstdlib>
 
 using namespace std;
+
+struct Connection{
+    double weight;
+    double deltaWeight;
+};
 
 class Neuron{};
 
@@ -10,12 +16,21 @@ typedef vector<Neuron> Layer;
 class Neuron {
 
 public:
-    Neuron();
+    Neuron(unsigned numOutputs);
 
 private:
+    static double randomWeight(void){return rand()/double(RAND_MAX);}
     double m_outputVal;
+    vector<Connection> m_outputWeights;
 
 };
+
+Neuron::Neuron(unsigned numOutputs){
+    for (unsigned c=0; c<numOutputs;++c) {
+        m_outputWeights.push_back(Connection());
+        m_outputWeights.back().weight=randomWeight();
+    }
+}
 
 class Net{
 
@@ -34,9 +49,10 @@ Net::Net(const vector<unsigned> &topology){
     unsigned numLayers = topology.size();
     for (unsigned layerNum=0; layerNum<numLayers; ++layerNum){
         m_layers.push_back(Layer());
+        unsigned numOutputs=layerNum ==topology.size()-1 ? 0:topology[layerNum+1];
 
         for (unsigned neuronNum=0; neuronNum<=topology[layerNum];++neuronNum){
-            m_layers.back().push_back(Neuron());
+            m_layers.back().push_back(Neuron(numOutputs));
             cout<<"Made a Neuron"<<endl;
         }
     }
